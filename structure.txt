@@ -1,0 +1,36 @@
+.
+├── accounts
+│   ├── models.py
+│   ├── serializers.py
+│   ├── urls.py
+│   └── views.py
+├── manage.py
+├── structure.txt
+├── tracker
+│   ├── admin.py
+│   ├── apps.py
+│   ├── __init__.py
+│   ├── management
+│   │   └── commands
+│   │       └── aggregate_daily_stats.py
+│   ├── middleware.py
+│   ├── migrations
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── serializers.py
+│   ├── tasks.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── utils.py
+│   └── views.py
+└── visiora
+    ├── asgi.py
+    ├── __init__.py
+    ├── __pycache__
+    │   ├── __init__.cpython-312.pyc
+    │   └── settings.cpython-312.pyc
+    ├── settings.py
+    ├── urls.py
+    └── wsgi.py
+
+8 directories, 26 files
