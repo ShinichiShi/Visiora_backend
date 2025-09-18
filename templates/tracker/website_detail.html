@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ website.name }} – Tracking Snippet</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 2rem;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h2>Tracking Snippet for <em>{{ website.name }}</em></h2>
+  <p>Copy and paste this code into your website’s <code>&lt;head&gt;</code> or just before <code>&lt;/body&gt;</code>:</p>
+
+  <pre id="snippet">&lt;script src="https://your-domain.com/static/js/visiora-analytics.js"
+        data-tracking-id="{{ website.tracking_id }}"
+        data-api-url="https://your-domain.com/api/analytics/ingest/"
+        data-debug="false"&gt;&lt;/script&gt;
+  </pre>
+
+  <button id="copyBtn">Copy Snippet</button>
+
+  <script>
+    document.getElementById("copyBtn").addEventListener("click", async () => {
+      const snippet = document.getElementById("snippet").innerText;
+      try {
+        await navigator.clipboard.writeText(snippet);
+        alert("✅ Snippet copied to clipboard!");
+      } catch (err) {
+        // fallback
+        const el = document.createElement("textarea");
+        el.value = snippet;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand("copy");
+        el.remove();
+        alert("✅ Snippet copied (fallback).");
+      }
+    });
+  </script>
+</body>
+</html>

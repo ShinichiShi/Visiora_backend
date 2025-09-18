@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dummy Test Website</title>
+</head>
+<body>
+  <h1>Hello from Dummy Website 🎉</h1>
+  <p>Click the button to fire a custom event.</p>
+  <button onclick="fireCustom()">Click Me</button>
+
+  <!-- Embed your tracking script -->
+  <script src="http://localhost:8000/static/js/visiora_analytics.js"
+          data-tracking-id="f86cc457-0c63-4f40-b6a5-fe48bf1bc9be"
+          data-api-url="http://localhost:8000/api/tracker/ingest/"
+          data-debug="true"></script>
+
+  <script>
+    function fireCustom() {
+      visiora.track("button_click", {
+        category: "demo",
+        action: "click",
+        label: "dummy_button",
+        value: 1
+      });
+    }
+  </script>
+</body>
+</html>

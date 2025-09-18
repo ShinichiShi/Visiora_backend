@@ -10,7 +10,7 @@ urlpatterns = [
     
     # Event ingestion
     path('ingest/', views.ingest_event, name='ingest_event'),
-    
+    path("websites/<uuid:website_id>/", views.website_detail, name="website_detail"),
     # Analytics endpoints
     path('websites/<uuid:website_id>/overview/', views.analytics_overview, name='analytics_overview'),
     path('websites/<uuid:website_id>/pageviews/', views.page_views_analytics, name='page_views_analytics'),

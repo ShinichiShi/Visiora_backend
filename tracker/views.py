@@ -16,6 +16,11 @@ from .serializers import (
 )
 from .utils import parse_user_agent, get_traffic_source, get_location_from_ip
 from .batch_processor import BatchEventProcessor
+from django.shortcuts import render, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from .models import Website
+
 
 class WebsiteViewSet(viewsets.ModelViewSet):
     serializer_class = WebsiteSerializer
@@ -26,7 +31,7 @@ class WebsiteViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
-
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def ingest_event(request):
@@ -576,3 +581,7 @@ def ingest_event_optimized(request):
         return Response({'status': 'queued'}, status=status.HTTP_202_ACCEPTED)
     else:
         return Response({'error': 'Processing failed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+@login_required
+def website_detail(request, website_id):
+    website = get_object_or_404(Website, id=website_id, owner=request.user)
+    return render(request, "tracker/website_detail.html", {"website": website})
