@@ -1,12 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.gis.db import models as gis_models
 from django.utils import timezone
+from django.conf import settings
 import uuid
 
 class Website(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     domain = models.URLField()
     tracking_id = models.UUIDField(default=uuid.uuid4, unique=True)
@@ -51,7 +51,7 @@ class Session(models.Model):
     country = models.CharField(max_length=100, null=True, blank=True)
     region = models.CharField(max_length=100, null=True, blank=True)
     city = models.CharField(max_length=100, null=True, blank=True)
-    location = gis_models.PointField(null=True, blank=True)
+    location = models.CharField(max_length=255, null=True, blank=True)  
     
     class Meta:
         unique_together = ['website', 'session_id']

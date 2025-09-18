@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'django.contrib.gis',  
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
@@ -85,7 +84,7 @@ WSGI_APPLICATION = "visiora.wsgi.application"
 
 DATABASES = {
     "default": {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME', 'analytics_db'),
         'USER': os.getenv('DB_USER', 'postgres'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),
