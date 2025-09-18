@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -165,4 +166,24 @@ TRACKER_SETTINGS = {
     'SESSION_TIMEOUT_MINUTES': 30,
     'BATCH_SIZE': 1000,
     'ENABLE_REAL_TIME': True,
+}
+
+
+CELERY_BEAT_SCHEDULE = {
+    'process-event-batches': {
+        'task': 'tracker.tasks.process_event_batches',
+        'schedule': 30.0,  # Every 30 seconds
+    },
+    'monitor-websites': {
+        'task': 'tracker.tasks.monitor_websites',
+        'schedule': crontab(minute='*/5'),  # Every 5 minutes
+    },
+    'aggregate-daily-stats': {
+        'task': 'tracker.tasks.aggregate_daily_stats',
+        'schedule': crontab(hour=1, minute=0),  # Daily at 1 AM
+    },
+    'cleanup-old-data': {
+        'task': 'tracker.tasks.cleanup_old_data',
+        'schedule': crontab(hour=2, minute=0, day_of_week=0),  # Weekly on Sunday at 2 AM
+    },
 }

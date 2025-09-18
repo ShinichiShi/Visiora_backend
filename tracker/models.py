@@ -20,13 +20,21 @@ class Website(models.Model):
 class Visitor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     website = models.ForeignKey(Website, on_delete=models.CASCADE)
-    visitor_id = models.CharField(max_length=255, db_index=True)  # Client-side generated ID
+    visitor_id = models.CharField(max_length=255, db_index=True)
     first_seen = models.DateTimeField(auto_now_add=True)
     last_seen = models.DateTimeField(auto_now=True)
     is_returning = models.BooleanField(default=False)
-    
+    started_at = models.DateTimeField(default=timezone.now,db_index=True) 
+    device_type = models.CharField(max_length=50, null=True, blank=True)
+    country = models.CharField(max_length=100, null=True, blank=True)
     class Meta:
         unique_together = ['website', 'visitor_id']
+        indexes = [
+            models.Index(fields=['website', 'started_at']),
+            models.Index(fields=['visitor_id', 'started_at']),
+            models.Index(fields=['device_type', 'started_at']),
+            models.Index(fields=['country', 'started_at']),
+        ]
 
 class Session(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -82,12 +90,20 @@ class PageView(models.Model):
     # Timing
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
     time_on_page = models.IntegerField(null=True, blank=True)  # seconds
-    
+
     # Screen Info
     screen_width = models.IntegerField(null=True, blank=True)
     screen_height = models.IntegerField(null=True, blank=True)
     viewport_width = models.IntegerField(null=True, blank=True)
     viewport_height = models.IntegerField(null=True, blank=True)
+    class Meta:
+        indexes = [
+            models.Index(fields=['website', 'timestamp']),
+            models.Index(fields=['visitor_id', 'timestamp']), 
+            models.Index(fields=['session', 'timestamp']),
+            models.Index(fields=['page_path', 'timestamp']),
+            models.Index(fields=['traffic_source', 'timestamp']),
+        ]
 
 class CustomEvent(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

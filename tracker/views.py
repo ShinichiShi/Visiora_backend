@@ -7,6 +7,7 @@ from django.db.models.functions import TruncDate
 from django.utils import timezone
 from datetime import datetime, timedelta
 import json
+from django.core.cache import cache
 from .models import Website, PageView, Session, Visitor, CustomEvent, DailyStats
 from .serializers import (
     WebsiteSerializer, EventIngestionSerializer, PageViewAnalyticsSerializer,
@@ -14,6 +15,7 @@ from .serializers import (
     BrowserStatsSerializer, GeographyStatsSerializer
 )
 from .utils import parse_user_agent, get_traffic_source, get_location_from_ip
+from .batch_processor import BatchEventProcessor
 
 class WebsiteViewSet(viewsets.ModelViewSet):
     serializer_class = WebsiteSerializer
@@ -538,3 +540,39 @@ def get_domain_from_url(url):
         return urlparse(url).netloc
     except:
         return None
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def ingest_event_optimized(request):
+    """
+    Optimized event ingestion with batching and caching
+    """
+    serializer = EventIngestionSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    data = serializer.validated_data
+    
+    # Validate tracking ID from cache first
+    cache_key = f"website:{data['tracking_id']}"
+    website_exists = cache.get(cache_key)
+    if website_exists is None:
+        try:
+            Website.objects.get(tracking_id=data['tracking_id'], is_active=True)
+            cache.set(cache_key, True, timeout=3600)  # Cache for 1 hour
+        except Website.DoesNotExist:
+            cache.set(cache_key, False, timeout=300)  # Cache negative result for 5 minutes
+            return Response({'error': 'Invalid tracking ID'}, status=status.HTTP_400_BAD_REQUEST)
+    elif website_exists is False:
+        return Response({'error': 'Invalid tracking ID'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Invalid tracking ID'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Add client IP and processing metadata
+    data['client_ip'] = get_client_ip(request)
+    data['received_at'] = timezone.now().isoformat()
+    processor = BatchEventProcessor()
+    success = processor.queue_event(data)
+    
+    if success:
+        return Response({'status': 'queued'}, status=status.HTTP_202_ACCEPTED)
+    else:
+        return Response({'error': 'Processing failed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
