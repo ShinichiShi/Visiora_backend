@@ -1,28 +1,129 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Dummy Test Website</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Website - Visiora Analytics Demo</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8fafc;
+            padding: 2rem;
+        }
+        
+        .status {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .status.loading {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status.error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            margin: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .btn:hover {
+            background: #2563eb;
+        }
+        
+        .debug-info {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 2rem;
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+        
+        .event-log {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+    </style>
 </head>
 <body>
-  <h1>Hello from Dummy Website 🎉</h1>
-  <p>Click the button to fire a custom event.</p>
-  <button onclick="fireCustom()">Click Me</button>
-
-  <!-- Embed your tracking script -->
-  <script src="http://localhost:8000/static/js/visiora_analytics.js"
-          data-tracking-id="f86cc457-0c63-4f40-b6a5-fe48bf1bc9be"
-          data-api-url="http://localhost:8000/api/tracker/ingest/"
-          data-debug="true"></script>
-
-  <script>
-    function fireCustom() {
-      visiora.track("button_click", {
-        category: "demo",
-        action: "click",
-        label: "dummy_button",
-        value: 1
-      });
-    }
-  </script>
+    <div class="status loading" id="status">
+        Loading Visiora Analytics... Please wait.
+    </div>
+    
+    <div class="container">
+        <h1>Visiora Analytics Test Site</h1>
+        <p>This page tests the analytics tracking functionality with complete event data.</p>
+        
+        <div>
+            <h2>Test Interactions:</h2>
+            <button class="btn" onclick="testPageview()">Test Pageview</button>
+            <button class="btn" onclick="testCustomEvent()">Test Custom Event</button>
+            <button class="btn" onclick="testIdentify()">Test User Identify</button>
+            <button class="btn" onclick="checkStatus()">Check Status</button>
+            <button class="btn" onclick="clearLogs()">Clear Logs</button>
+        </div>
+        
+        <div class="debug-info" id="debug">
+            <strong>Debug Information:</strong><br>
+            <span id="debug-content">Loading...</span>
+        </div>
+        
+        <div class="event-log" id="event-log">
+            <strong>Event Log:</strong><br>
+        </div>
+    </div>
+    
+    <script
+      src="https://your-domain.com/static/js/visiora_analytics.min.js"
+  data-tracking-id="1018d54e-c2cb-40f6-801c-6035c38d5dda"
+  data-api-url="https://localhost/api/tracker/ingest/"
+  data-debug="false">
+    </script>
 </body>
 </html>

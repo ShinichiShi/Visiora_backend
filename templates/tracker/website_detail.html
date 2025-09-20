@@ -1,62 +1,386 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>{{ website.name }} – Tracking Snippet</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 2rem;
-    }
-    pre {
-      background: #f4f4f4;
-      padding: 1rem;
-      border-radius: 6px;
-      overflow-x: auto;
-    }
-    button {
-      margin-top: 1rem;
-      padding: 0.5rem 1rem;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ website.name }} - Analytics Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .website-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .website-details h1 {
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .website-meta {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+        
+        .website-meta p {
+            margin-bottom: 0.25rem;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+        
+        .embed-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+        
+        .embed-header {
+            margin-bottom: 1.5rem;
+        }
+        
+        .embed-header h2 {
+            color: #1e293b;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .embed-description {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+        
+        .code-block {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+            overflow-x: auto;
+        }
+        
+        .code-content {
+            color: #e2e8f0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .copy-btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+        
+        .copy-btn.copied {
+            background: #22c55e;
+        }
+        
+        .steps {
+            margin-top: 2rem;
+        }
+        
+        .steps h3 {
+            color: #1e293b;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .step-list {
+            list-style: none;
+        }
+        
+        .step-item {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: flex-start;
+        }
+        
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            font-weight: 600;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+        
+        .step-description {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .info-card {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        
+        .info-card h4 {
+            color: #1e293b;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-card p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .website-info {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .code-block {
+                padding: 1rem;
+            }
+            
+            .copy-btn {
+                position: static;
+                width: 100%;
+                margin-top: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h2>Tracking Snippet for <em>{{ website.name }}</em></h2>
-  <p>Copy and paste this code into your website’s <code>&lt;head&gt;</code> or just before <code>&lt;/body&gt;</code>:</p>
+    <div class="container">
+        <div class="header">
+            <div class="website-info">
+                <div class="website-details">
+                    <h1>{{ website.name }}</h1>
+                    <div class="website-meta">
+                        <p><strong>Domain:</strong> {{ website.domain }}</p>
+                        <p><strong>Tracking ID:</strong> {{ website.tracking_id }}</p>
+                        <p><strong>Created:</strong> {{ website.created_at|date:"F d, Y" }}</p>
+                    </div>
+                </div>
+                <div class="status-badge">
+                    <div class="status-dot"></div>
+                    Active
+                </div>
+            </div>
+        </div>
+        
+        <div class="embed-section">
+            <div class="embed-header">
+                <h2>Tracking Code</h2>
+                <p class="embed-description">
+                    Copy and paste this code into the &lt;head&gt; section of your website to start collecting analytics data.
+                </p>
+            </div>
+            
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyToClipboard()">Copy Code</button>
+                <code class="code-content" id="embed-code">&lt;script 
+  src="https://{{ request.get_host }}/static/js/visiora_analytics.min.js"
+  data-tracking-id="{{ website.tracking_id }}"
+  data-api-url="https://{{ request.get_host }}/api/tracker/ingest/"
+  data-debug="false"&gt;
+&lt;/script&gt;</code>
+            </div>
+            
+            <div class="steps">
+                <h3>Quick Setup Guide</h3>
+                <ol class="step-list">
+                    <li class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <div class="step-title">Copy the tracking code</div>
+                            <div class="step-description">Click the "Copy Code" button above to copy the tracking script</div>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <div class="step-title">Add to your website</div>
+                            <div class="step-description">Paste the code in the &lt;head&gt; section of your HTML, before the closing &lt;/head&gt; tag</div>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <div class="step-title">Verify installation</div>
+                            <div class="step-description">Visit your website and check that events are being tracked in your analytics dashboard</div>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <div class="step-title">Start analyzing</div>
+                            <div class="step-description">View your website analytics, track user behavior, and optimize your site performance</div>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>📊 Automatic Tracking</h4>
+                    <p>Page views, clicks, form submissions, and scroll depth are tracked automatically without additional configuration.</p>
+                </div>
+                <div class="info-card">
+                    <h4>🚀 Custom Events</h4>
+                    <p>Use <code>window.visiora.track('event_name', {properties})</code> to track custom events and user interactions.</p>
+                </div>
+                <div class="info-card">
+                    <h4>🔒 Privacy Focused</h4>
+                    <p>No cookies required, GDPR compliant by default, and user data is stored securely with automatic anonymization.</p>
+                </div>
+                <div class="info-card">
+                    <h4>⚡ High Performance</h4>
+                    <p>Lightweight script with batched requests and minimal impact on your website's loading speed.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  <pre id="snippet">&lt;script src="https://your-domain.com/static/js/visiora-analytics.js"
-        data-tracking-id="{{ website.tracking_id }}"
-        data-api-url="https://your-domain.com/api/analytics/ingest/"
-        data-debug="false"&gt;&lt;/script&gt;
-  </pre>
-
-  <button id="copyBtn">Copy Snippet</button>
-
-  <script>
-    document.getElementById("copyBtn").addEventListener("click", async () => {
-      const snippet = document.getElementById("snippet").innerText;
-      try {
-        await navigator.clipboard.writeText(snippet);
-        alert("✅ Snippet copied to clipboard!");
-      } catch (err) {
-        // fallback
-        const el = document.createElement("textarea");
-        el.value = snippet;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand("copy");
-        el.remove();
-        alert("✅ Snippet copied (fallback).");
-      }
-    });
-  </script>
+    <script>
+        function copyToClipboard() {
+            const codeElement = document.getElementById('embed-code');
+            const copyBtn = document.querySelector('.copy-btn');
+            
+            // Create a temporary textarea to copy the text
+            const tempTextarea = document.createElement('textarea');
+            tempTextarea.value = codeElement.textContent;
+            document.body.appendChild(tempTextarea);
+            tempTextarea.select();
+            
+            try {
+                document.execCommand('copy');
+                
+                // Update button state
+                copyBtn.textContent = 'Copied!';
+                copyBtn.classList.add('copied');
+                
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy Code';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+                
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                alert('Failed to copy code. Please select and copy manually.');
+            }
+            
+            document.body.removeChild(tempTextarea);
+        }
+        
+        // Modern clipboard API fallback
+        if (navigator.clipboard) {
+            function copyToClipboard() {
+                const codeElement = document.getElementById('embed-code');
+                const copyBtn = document.querySelector('.copy-btn');
+                
+                navigator.clipboard.writeText(codeElement.textContent).then(() => {
+                    copyBtn.textContent = 'Copied!';
+                    copyBtn.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        copyBtn.textContent = 'Copy Code';
+                        copyBtn.classList.remove('copied');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    alert('Failed to copy code. Please select and copy manually.');
+                });
+            }
+        }
+    </script>
 </body>
 </html>

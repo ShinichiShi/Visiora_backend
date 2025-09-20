@@ -79,3 +79,23 @@ def get_location_from_ip(ip_address):
         pass
     
     return {}
+
+def get_location_from_ip(ip_address):
+    """
+    Get location info from IP address
+    For development, return dummy data
+    """
+    if not ip_address or ip_address in ['127.0.0.1', 'localhost']:
+        return {
+            'country': 'United States',
+            'region': 'California', 
+            'city': 'San Francisco'
+        }
+    
+    # For production, implement actual IP geolocation
+    # using services like MaxMind GeoIP2, ipapi.co, etc.
+    return {
+        'country': 'Unknown',
+        'region': 'Unknown',
+        'city': 'Unknown'
+    }

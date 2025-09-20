@@ -1,36 +1,191 @@
 .
 ├── accounts
+│   ├── __init__.py
+│   ├── migrations
+│   │   ├── 0001_initial.py
+│   │   ├── __init__.py
+│   │   └── __pycache__
+│   │       ├── 0001_initial.cpython-312.pyc
+│   │       └── __init__.cpython-312.pyc
 │   ├── models.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   ├── models.cpython-312.pyc
+│   │   ├── serializers.cpython-312.pyc
+│   │   ├── urls.cpython-312.pyc
+│   │   └── views.cpython-312.pyc
 │   ├── serializers.py
 │   ├── urls.py
 │   └── views.py
+├── celerybeat-schedule.bak
+├── celerybeat-schedule.dat
+├── celerybeat-schedule.dir
 ├── manage.py
+├── requirements.txt
+├── static
+│   └── js
+│       └── visiora_analytics.js
+├── staticfiles
+│   ├── admin
+│   │   ├── css
+│   │   │   ├── autocomplete.css
+│   │   │   ├── base.css
+│   │   │   ├── changelists.css
+│   │   │   ├── dark_mode.css
+│   │   │   ├── dashboard.css
+│   │   │   ├── forms.css
+│   │   │   ├── login.css
+│   │   │   ├── nav_sidebar.css
+│   │   │   ├── responsive.css
+│   │   │   ├── responsive_rtl.css
+│   │   │   ├── rtl.css
+│   │   │   ├── unusable_password_field.css
+│   │   │   ├── vendor
+│   │   │   └── widgets.css
+│   │   ├── img
+│   │   │   ├── calendar-icons.svg
+│   │   │   ├── gis
+│   │   │   ├── icon-addlink.svg
+│   │   │   ├── icon-alert.svg
+│   │   │   ├── icon-calendar.svg
+│   │   │   ├── icon-changelink.svg
+│   │   │   ├── icon-clock.svg
+│   │   │   ├── icon-deletelink.svg
+│   │   │   ├── icon-hidelink.svg
+│   │   │   ├── icon-no.svg
+│   │   │   ├── icon-unknown-alt.svg
+│   │   │   ├── icon-unknown.svg
+│   │   │   ├── icon-viewlink.svg
+│   │   │   ├── icon-yes.svg
+│   │   │   ├── inline-delete.svg
+│   │   │   ├── LICENSE
+│   │   │   ├── README.txt
+│   │   │   ├── search.svg
+│   │   │   ├── selector-icons.svg
+│   │   │   ├── sorting-icons.svg
+│   │   │   ├── tooltag-add.svg
+│   │   │   └── tooltag-arrowright.svg
+│   │   └── js
+│   │       ├── actions.js
+│   │       ├── admin
+│   │       ├── autocomplete.js
+│   │       ├── calendar.js
+│   │       ├── cancel.js
+│   │       ├── change_form.js
+│   │       ├── core.js
+│   │       ├── filters.js
+│   │       ├── inlines.js
+│   │       ├── jquery.init.js
+│   │       ├── nav_sidebar.js
+│   │       ├── popup_response.js
+│   │       ├── prepopulate_init.js
+│   │       ├── prepopulate.js
+│   │       ├── SelectBox.js
+│   │       ├── SelectFilter2.js
+│   │       ├── theme.js
+│   │       ├── unusable_password_field.js
+│   │       ├── urlify.js
+│   │       └── vendor
+│   ├── js
+│   │   └── visiora_analytics.js
+│   └── rest_framework
+│       ├── css
+│       │   ├── bootstrap.min.css
+│       │   ├── bootstrap.min.css.map
+│       │   ├── bootstrap-theme.min.css
+│       │   ├── bootstrap-theme.min.css.map
+│       │   ├── bootstrap-tweaks.css
+│       │   ├── default.css
+│       │   ├── font-awesome-4.0.3.css
+│       │   └── prettify.css
+│       ├── docs
+│       │   ├── css
+│       │   ├── img
+│       │   └── js
+│       ├── fonts
+│       │   ├── fontawesome-webfont.eot
+│       │   ├── fontawesome-webfont.svg
+│       │   ├── fontawesome-webfont.ttf
+│       │   ├── fontawesome-webfont.woff
+│       │   ├── glyphicons-halflings-regular.eot
+│       │   ├── glyphicons-halflings-regular.svg
+│       │   ├── glyphicons-halflings-regular.ttf
+│       │   ├── glyphicons-halflings-regular.woff
+│       │   └── glyphicons-halflings-regular.woff2
+│       ├── img
+│       │   ├── glyphicons-halflings.png
+│       │   ├── glyphicons-halflings-white.png
+│       │   └── grid.png
+│       └── js
+│           ├── ajax-form.js
+│           ├── bootstrap.min.js
+│           ├── coreapi-0.1.1.js
+│           ├── csrf.js
+│           ├── default.js
+│           ├── jquery-3.7.1.min.js
+│           ├── load-ajax-form.js
+│           └── prettify-min.js
 ├── structure.txt
+├── templates
+│   └── tracker
+│       └── website_detail.html
 ├── tracker
 │   ├── admin.py
 │   ├── apps.py
+│   ├── batch_processor.py
+│   ├── cache.py
+│   ├── consumers.py
 │   ├── __init__.py
 │   ├── management
 │   │   └── commands
-│   │       └── aggregate_daily_stats.py
+│   │       ├── aggregate_daily_stats.py
+│   │       ├── monitor_websites.py
+│   │       └── process_event_batches.py
 │   ├── middleware.py
 │   ├── migrations
-│   │   └── __init__.py
+│   │   ├── 0001_initial.py
+│   │   ├── 0002_visitor_country_visitor_device_type_and_more.py
+│   │   ├── 0003_alter_website_tracking_id.py
+│   │   ├── __init__.py
+│   │   └── __pycache__
+│   │       ├── 0001_initial.cpython-312.pyc
+│   │       ├── 0002_visitor_country_visitor_device_type_and_more.cpython-312.pyc
+│   │       ├── 0003_alter_website_tracking_id.cpython-312.pyc
+│   │       └── __init__.cpython-312.pyc
 │   ├── models.py
+│   ├── monitoring.py
+│   ├── __pycache__
+│   │   ├── admin.cpython-312.pyc
+│   │   ├── apps.cpython-312.pyc
+│   │   ├── batch_processor.cpython-312.pyc
+│   │   ├── __init__.cpython-312.pyc
+│   │   ├── middleware.cpython-312.pyc
+│   │   ├── models.cpython-312.pyc
+│   │   ├── monitoring.cpython-312.pyc
+│   │   ├── serializers.cpython-312.pyc
+│   │   ├── tasks.cpython-312.pyc
+│   │   ├── urls.cpython-312.pyc
+│   │   ├── utils.cpython-312.pyc
+│   │   └── views.cpython-312.pyc
 │   ├── serializers.py
 │   ├── tasks.py
 │   ├── tests.py
 │   ├── urls.py
 │   ├── utils.py
 │   └── views.py
+├── trial.html
 └── visiora
     ├── asgi.py
+    ├── celery.py
     ├── __init__.py
     ├── __pycache__
+    │   ├── celery.cpython-312.pyc
     │   ├── __init__.cpython-312.pyc
-    │   └── settings.cpython-312.pyc
+    │   ├── settings.cpython-312.pyc
+    │   ├── urls.cpython-312.pyc
+    │   └── wsgi.cpython-312.pyc
     ├── settings.py
     ├── urls.py
     └── wsgi.py
 
-8 directories, 26 files
+36 directories, 153 files

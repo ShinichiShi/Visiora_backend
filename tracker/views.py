@@ -20,7 +20,8 @@ from django.shortcuts import render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from .models import Website
-
+from django.http import HttpResponseForbidden
+from django.http import JsonResponse
 
 class WebsiteViewSet(viewsets.ModelViewSet):
     serializer_class = WebsiteSerializer
@@ -88,6 +89,11 @@ def ingest_event(request):
                 'city': location_info.get('city'),
             }
         )
+        if not session_created and not session.country:
+            session.country = location_info.get('country')
+            session.region = location_info.get('region') 
+            session.city = location_info.get('city')
+            session.save()
         
         # Process event based on type
         if data['event_type'] == 'pageview':
@@ -581,7 +587,404 @@ def ingest_event_optimized(request):
         return Response({'status': 'queued'}, status=status.HTTP_202_ACCEPTED)
     else:
         return Response({'error': 'Processing failed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-@login_required
-def website_detail(request, website_id):
+
+# @login_required
+def website_detail_dashboard(request, website_id):
+    """
+    Dashboard view for displaying website tracking code and setup instructions
+    """
+    website = get_object_or_404(Website, id=website_id)
+    
+    # Ensure user owns the website
+    # if website.owner != request.user:
+    #     return HttpResponseForbidden("You don't have permission to view this website.")
+    
+    return render(request, 'tracker/website_detail.html', {
+        'website': website
+    })
+
+
+@csrf_exempt
+@api_view(['POST', 'GET'])
+@permission_classes([AllowAny])
+def debug_ingest(request):
+    """
+    Debug endpoint to test ingestion without validation
+    """
+    if request.method == 'GET':
+        return JsonResponse({
+            'status': 'Debug endpoint is working',
+            'tracking_id': '3eb68919-b515-4fa1-b00e-975a3f0eb8e8',
+            'api_url': request.build_absolute_uri('/api/tracker/ingest/'),
+            'debug_url': request.build_absolute_uri('/api/tracker/debug-ingest/')
+        })
+    
+    try:
+        # Log the raw request for debugging
+        if request.content_type == 'application/json':
+            data = json.loads(request.body)
+        else:
+            data = request.POST.dict()
+        
+        print("=== DEBUG INGEST REQUEST ===")
+        print(f"Content-Type: {request.content_type}")
+        print(f"Request Data: {data}")
+        print("=== END DEBUG ===")
+        
+        # Basic validation
+        required_fields = ['tracking_id', 'visitor_id', 'session_id', 'event_type', 'timestamp']
+        missing_fields = [field for field in required_fields if not data.get(field)]
+        
+        if missing_fields:
+            return JsonResponse({
+                'error': 'Missing required fields',
+                'missing_fields': missing_fields,
+                'received_data': data
+            }, status=400)
+        
+        # Check if tracking_id exists
+        try:
+            website = Website.objects.get(tracking_id=data['tracking_id'])
+        except Website.DoesNotExist:
+            return JsonResponse({
+                'error': 'Invalid tracking ID',
+                'received_tracking_id': data['tracking_id'],
+                'valid_tracking_ids': list(Website.objects.values_list('tracking_id', flat=True))
+            }, status=400)
+        
+        # Success response
+        return JsonResponse({
+            'success': True,
+            'message': 'Debug validation passed',
+            'website': website.name,
+            'event_type': data.get('event_type'),
+            'received_fields': list(data.keys())
+        }, status=200)
+        
+    except json.JSONDecodeError as e:
+        return JsonResponse({
+            'error': 'Invalid JSON',
+            'details': str(e),
+            'received_body': request.body.decode('utf-8', errors='replace')[:500]
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'error': 'Unexpected error',
+            'details': str(e)
+        }, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def comprehensive_analytics(request, website_id):
+    """
+    Get comprehensive analytics data for a website including:
+    - Overview stats
+    - Page views trend and top pages
+    - Sessions count and duration
+    - New vs returning users
+    - Traffic sources
+    - Device distribution
+    - Browser distribution
+    - Geography distribution
+    """
     website = get_object_or_404(Website, id=website_id, owner=request.user)
-    return render(request, "tracker/website_detail.html", {"website": website})
+    
+    # Get date range from query parameters (default to last 30 days)
+    days = int(request.GET.get('days', 30))
+    end_date = timezone.now()
+    start_date = end_date - timedelta(days=days)
+    
+    # Base querysets with date filtering
+    pageviews_qs = PageView.objects.filter(
+        website=website,
+        timestamp__gte=start_date,
+        timestamp__lte=end_date
+    )
+    
+    sessions_qs = Session.objects.filter(
+        website=website,
+        started_at__gte=start_date,
+        started_at__lte=end_date
+    )
+    
+    visitors_qs = Visitor.objects.filter(
+        website=website,
+        first_seen__gte=start_date,
+        first_seen__lte=end_date
+    )
+    
+    custom_events_qs = CustomEvent.objects.filter(
+        website=website,
+        timestamp__gte=start_date,
+        timestamp__lte=end_date
+    )
+    
+    # 1. OVERVIEW STATS
+    total_pageviews = pageviews_qs.count()
+    total_sessions = sessions_qs.count()
+    total_visitors = visitors_qs.count()
+    total_custom_events = custom_events_qs.count()
+    
+    avg_session_duration = sessions_qs.aggregate(
+        avg_duration=Avg('duration_seconds')
+    )['avg_duration'] or 0
+    
+    # Bounce rate (sessions with only 1 pageview)
+    bounced_sessions = sessions_qs.filter(page_views=1).count()
+    bounce_rate = (bounced_sessions / total_sessions * 100) if total_sessions > 0 else 0
+    
+    # 2. PAGE VIEWS TREND AND TOP PAGES
+    # Daily pageview trend
+    pageviews_trend = (
+        pageviews_qs
+        .extra({'date': "date(timestamp)"})
+        .values('date')
+        .annotate(
+            views=Count('id'),
+            unique_views=Count('visitor', distinct=True)
+        )
+        .order_by('date')
+    )
+    
+    # Top pages
+    top_pages = (
+        pageviews_qs
+        .values('page_path', 'page_title')
+        .annotate(
+            views=Count('id'),
+            unique_views=Count('visitor', distinct=True)
+        )
+        .order_by('-views')[:10]
+    )
+    
+    # 3. SESSIONS TREND AND DURATION
+    sessions_trend = (
+    sessions_qs
+    .annotate(date=TruncDate('started_at'))
+    .values('date')
+    .annotate(
+        sessions=Count('id'),
+        avg_duration=Avg('duration_seconds')
+    )
+    .order_by('date')   
+    )
+  
+    # Session duration distribution
+    duration_ranges = [
+        ('0-30s', 0, 30),
+        ('30s-1m', 31, 60),
+        ('1-3m', 61, 180),
+        ('3-10m', 181, 600),
+        ('10m+', 601, float('inf'))
+    ]
+    
+    duration_distribution = []
+    for label, min_duration, max_duration in duration_ranges:
+        if max_duration == float('inf'):
+            count = sessions_qs.filter(duration_seconds__gte=min_duration).count()
+        else:
+            count = sessions_qs.filter(
+                duration_seconds__gte=min_duration,
+                duration_seconds__lte=max_duration
+            ).count()
+        
+        percentage = (count / total_sessions * 100) if total_sessions > 0 else 0
+        duration_distribution.append({
+            'range': label,
+            'count': count,
+            'percentage': round(percentage, 1)
+        })
+    
+    # 4. NEW VS RETURNING USERS
+    # Users by type
+    new_users = sessions_qs.filter(visitor__is_returning=False).values('visitor').distinct().count()
+    returning_users = sessions_qs.filter(visitor__is_returning=True).values('visitor').distinct().count()
+    # Daily new vs returning trend
+    
+    users_trend = (
+    sessions_qs
+    .annotate(date=TruncDate('started_at'))
+    .values('date')
+    .annotate(
+        new_users=Count('visitor', filter=Q(visitor__is_returning=False), distinct=True),
+        returning_users=Count('visitor', filter=Q(visitor__is_returning=True), distinct=True)
+    )
+    .order_by('date')
+    )
+    users_trend = list(users_trend)
+    
+    # 5. TRAFFIC SOURCES
+    traffic_sources = (
+        pageviews_qs
+        .values('traffic_source')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    
+    # UTM sources
+    utm_sources = (
+        pageviews_qs
+        .exclude(utm_source='')
+        .exclude(utm_source__isnull=True)
+        .values('utm_source', 'utm_medium', 'utm_campaign')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:10]
+    )
+    
+    # Referrer domains
+    referrer_domains = (
+        pageviews_qs
+        .exclude(referrer_domain='')
+        .exclude(referrer_domain__isnull=True)
+        .values('referrer_domain')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:10]
+    )
+    
+    # 6. DEVICE DISTRIBUTION
+    device_stats = (
+        sessions_qs
+        .values('device_type')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    
+    # OS distribution
+    os_stats = (
+        sessions_qs
+        .values('os_name')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:10]
+    )
+    
+    # 7. BROWSER DISTRIBUTION
+    browser_stats = (
+        sessions_qs
+        .values('browser_name', 'browser_version')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:10]
+    )
+    
+    # Browser families (without version)
+    browser_families = (
+        sessions_qs
+        .values('browser_name')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:10]
+    )
+    
+    # 8. GEOGRAPHY DISTRIBUTION
+    countries = (
+        sessions_qs
+        .exclude(country='')
+        .exclude(country__isnull=True)
+        .values('country')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:20]
+    )
+    
+    regions = (
+        sessions_qs
+        .exclude(region='')
+        .exclude(region__isnull=True)
+        .values('country', 'region')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:15]
+    )
+    
+    cities = (
+        sessions_qs
+        .exclude(city='')
+        .exclude(city__isnull=True)
+        .values('country', 'region', 'city')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:15]
+    )
+    
+    # 9. REAL-TIME DATA (last hour)
+    last_hour = timezone.now() - timedelta(hours=1)
+    realtime_data = {
+        'active_users': sessions_qs.filter(started_at__gte=last_hour).count(),
+        'current_pageviews': pageviews_qs.filter(timestamp__gte=last_hour).count(),
+        'recent_events': custom_events_qs.filter(timestamp__gte=last_hour).count()
+    }
+    
+    # 10. CUSTOM EVENTS
+    popular_events = (
+        custom_events_qs
+        .values('event_name', 'event_category')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:10]
+    )
+    
+    # Calculate percentages for pie charts
+    def add_percentages(data_list, count_field='count'):
+        total = sum(item[count_field] for item in data_list)
+        for item in data_list:
+            item['percentage'] = round((item[count_field] / total * 100) if total > 0 else 0, 1)
+        return data_list
+    
+    # Build comprehensive response
+    analytics_data = {
+        'website': {
+            'id': str(website.id),
+            'name': website.name,
+            'domain': website.domain,
+            'tracking_id': str(website.tracking_id)
+        },
+        'date_range': {
+            'start': start_date.date().isoformat(),
+            'end': end_date.date().isoformat(),
+            'days': days
+        },
+        'overview': {
+            'total_pageviews': total_pageviews,
+            'total_sessions': total_sessions,
+            'total_visitors': total_visitors,
+            'total_custom_events': total_custom_events,
+            'avg_session_duration': round(avg_session_duration, 2),
+            'bounce_rate': round(bounce_rate, 1),
+            'pages_per_session': round((total_pageviews / total_sessions) if total_sessions > 0 else 0, 2)
+        },
+        'pageviews': {
+            'trend': list(pageviews_trend),
+            'top_pages': list(top_pages)
+        },
+        'sessions': {
+            'trend': list(sessions_trend),
+            'duration_distribution': duration_distribution
+        },
+        'users': {
+            'new_users': new_users,
+            'returning_users': returning_users,
+            'new_vs_returning_percentage': {
+                'new': round((new_users / total_visitors * 100) if total_visitors > 0 else 0, 1),
+                'returning': round((returning_users / total_visitors * 100) if total_visitors > 0 else 0, 1)
+            },
+            'trend': users_trend
+        },
+        'traffic_sources': {
+            'sources': add_percentages(list(traffic_sources)),
+            'utm_campaigns': list(utm_sources),
+            'referrer_domains': list(referrer_domains)
+        },
+        'devices': {
+            'device_types': add_percentages(list(device_stats)),
+            'operating_systems': add_percentages(list(os_stats))
+        },
+        'browsers': {
+            'browser_versions': list(browser_stats),
+            'browser_families': add_percentages(list(browser_families))
+        },
+        'geography': {
+            'countries': add_percentages(list(countries)),
+            'regions': list(regions),
+            'cities': list(cities)
+        },
+        'realtime': realtime_data,
+        'custom_events': {
+            'popular_events': list(popular_events)
+        }
+    }
+    
+    return Response(analytics_data)

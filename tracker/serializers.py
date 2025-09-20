@@ -13,13 +13,19 @@ class EventIngestionSerializer(serializers.Serializer):
     session_id = serializers.CharField(max_length=255)
     
     # Event data
-    event_type = serializers.ChoiceField(choices=['pageview', 'custom'])
+    event_type = serializers.ChoiceField(choices=[
+        'pageview', 'custom', 'click', 'form_submit', 
+        'scroll_depth', 'heartbeat', 'identify', 'performance'
+    ])
     timestamp = serializers.DateTimeField()
     
     # Page view specific
-    page_url = serializers.URLField(required=False)
-    page_title = serializers.CharField(max_length=255, required=False)
+    page_url = serializers.URLField(required=False, allow_blank=True)
+    page_title = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    page_path = serializers.CharField(max_length=500, required=False, allow_blank=True)
     referrer_url = serializers.URLField(required=False, allow_blank=True)
+    referrer_domain = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    traffic_source = serializers.CharField(max_length=100, required=False, allow_blank=True)
     
     # UTM parameters
     utm_source = serializers.CharField(max_length=255, required=False, allow_blank=True)
@@ -28,21 +34,34 @@ class EventIngestionSerializer(serializers.Serializer):
     utm_term = serializers.CharField(max_length=255, required=False, allow_blank=True)
     utm_content = serializers.CharField(max_length=255, required=False, allow_blank=True)
     
-    # Device info
+    # Device info - ADDED MISSING FIELDS
     user_agent = serializers.CharField(required=False, allow_blank=True)
-    screen_width = serializers.IntegerField(required=False)
-    screen_height = serializers.IntegerField(required=False)
-    viewport_width = serializers.IntegerField(required=False)
-    viewport_height = serializers.IntegerField(required=False)
+    device_type = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    browser_name = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    browser_version = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    os_name = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    os_version = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    timezone = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    
+    # Screen info
+    screen_width = serializers.IntegerField(required=False, allow_null=True)
+    screen_height = serializers.IntegerField(required=False, allow_null=True)
+    viewport_width = serializers.IntegerField(required=False, allow_null=True)
+    viewport_height = serializers.IntegerField(required=False, allow_null=True)
+    
+    # Location info - ADDED
+    ip_address = serializers.CharField(required=False, allow_blank=True)
+    country = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    region = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    city = serializers.CharField(max_length=100, required=False, allow_blank=True)
     
     # Custom event specific
-    event_name = serializers.CharField(max_length=255, required=False)
+    event_name = serializers.CharField(max_length=255, required=False, allow_blank=True)
     event_category = serializers.CharField(max_length=100, required=False, allow_blank=True)
     event_action = serializers.CharField(max_length=100, required=False, allow_blank=True)
     event_label = serializers.CharField(max_length=255, required=False, allow_blank=True)
-    event_value = serializers.FloatField(required=False)
-    properties = serializers.JSONField(required=False)
-
+    event_value = serializers.FloatField(required=False, allow_null=True)
+    properties = serializers.JSONField(required=False, default=dict)
 class PageViewAnalyticsSerializer(serializers.Serializer):
     date = serializers.DateField()
     page_views = serializers.IntegerField()

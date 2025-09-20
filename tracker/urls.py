@@ -10,8 +10,10 @@ urlpatterns = [
     
     # Event ingestion
     path('ingest/', views.ingest_event, name='ingest_event'),
-    path("websites/<uuid:website_id>/", views.website_detail, name="website_detail"),
+    path('debug-ingest/', views.debug_ingest, name='debug_ingest'),
+    path('dashboard/<uuid:website_id>/', views.website_detail_dashboard, name='website_dashboard'),
     # Analytics endpoints
+    path('websites/<uuid:website_id>/analytics/', views.comprehensive_analytics, name='comprehensive_analytics'),
     path('websites/<uuid:website_id>/overview/', views.analytics_overview, name='analytics_overview'),
     path('websites/<uuid:website_id>/pageviews/', views.page_views_analytics, name='page_views_analytics'),
     path('websites/<uuid:website_id>/sessions/', views.sessions_analytics, name='sessions_analytics'),
@@ -20,4 +22,5 @@ urlpatterns = [
     path('websites/<uuid:website_id>/devices/', views.devices_analytics, name='devices_analytics'),
     path('websites/<uuid:website_id>/browsers/', views.browsers_analytics, name='browsers_analytics'),
     path('websites/<uuid:website_id>/geography/', views.geography_analytics, name='geography_analytics'),
+    
 ]
